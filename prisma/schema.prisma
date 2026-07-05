@@ -1,14 +1,79 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../prisma/generated"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// Your models go here (e.g., User, Task, etc.)
-model User { 
-  id String @id @default(cuid())
-  email String @unique
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  password     String
+  refreshToken String?
+  avatar       String?
+  createdAt    DateTime  @default(now())
+  
+  boards       Board[]
+  assignedTasks Task[]   @relation("TaskAssignee")
+}
+
+model Board {
+  id        String    @id @default(cuid())
+  title     String
+  ownerId   String
+  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  columns   Column[]
+
+  @@index([ownerId])
+}
+
+model Column {
+  id        String   @id @default(cuid())
+  title     String
+  order     Int
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  tasks     Task[]
+
+  @@index([boardId])
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  priority    Priority    @default(MEDIUM)
+  dueDate     DateTime?
+  position    Int         
+  createdAt   DateTime    @default(now())
+  deletedAt   DateTime?   
+  columnId    String
+  column      Column      @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  assigneeId  String?
+  assignee    User?       @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  labels      TaskLabel[]
+
+  @@index([columnId])  
+  @@index([assigneeId])
+}
+
+model TaskLabel {
+  id     String @id @default(cuid())
+  name   String
+  color  String
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  @@index([taskId])
 }
