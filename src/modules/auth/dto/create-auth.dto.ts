@@ -10,3 +10,11 @@ export class CreateAuthDto {
     @IsString()
     password!: string;
 }
+
+export class LoginAuthDto {
+    @IsEmail()
+    email!: string;
+
+    @IsString()
+    password!: string;
+}

@@ -1,24 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseInterceptors(FileInterceptor('avatar',{
+    storage:memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
+  }))
   @Post('register')
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  async create(@Body() createAuthDto: CreateAuthDto, @UploadedFile() image?: Express.Multer.File,) {
+    return this.authService.create(createAuthDto, image);
   }
 
-  @Get('login')
-  findAll() {
-    return this.authService.findAll();
+  @Post('login')
+  async login(@Body() loginAuthDto: LoginAuthDto) {
+    return this.authService.login(loginAuthDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.authService.findOne(+id);
   }
 
