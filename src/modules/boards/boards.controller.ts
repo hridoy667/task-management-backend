@@ -1,4 +1,3 @@
-// src/modules/boards/boards.controller.ts
 import { 
   Controller, 
   Get, 

@@ -20,7 +20,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 
-@ApiTags('Authentication') // Swagger UI-তে আলাদা একটি গ্রুপ তৈরি করবে
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
@@ -30,7 +30,7 @@ export class AuthController {
     storage: memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 }, // Max 5MB
   }))
-  @ApiOperation({ summary: 'নতুন ইউজার রেজিস্ট্রেশন (with Avatar Upload)' })
+  @ApiOperation({ summary: 'New user registration (with Avatar Upload)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'User registration data along with an optional avatar file',
@@ -56,7 +56,7 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiOperation({ summary: 'ইউজার লগইন (Returns Access & Refresh Tokens)' })
+  @ApiOperation({ summary: 'User login (Returns Access & Refresh Tokens)' })
   @ApiResponse({ status: 200, description: 'Login successful. Returns tokens.' })
   @ApiResponse({ status: 400, description: 'Invalid credentials.' })
   async login(@Body() loginAuthDto: LoginAuthDto) {
@@ -65,7 +65,7 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'নতুন Access Token জেনারেট করা (Using Refresh Token)' })
+  @ApiOperation({ summary: 'Generate new Access Token (Using Refresh Token)' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully.' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token.' })
   async refresh(@Body() dto: RefreshTokenDto) {

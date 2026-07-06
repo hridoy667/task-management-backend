@@ -1,8 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import 'dotenv/config';
-import { SwaggerModule } from 'node_modules/@nestjs/swagger/dist/swagger-module';
-import { DocumentBuilder } from '@nestjs/swagger';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
@@ -12,7 +11,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Kanban Task Management API')
-    .setDescription('SammTech Ltd. Backend Internship Take-Home Assignment')
+    .setDescription('API documentation for the Kanban Task Management application.')
     .setVersion('1.0')
     .addBearerAuth(
       {

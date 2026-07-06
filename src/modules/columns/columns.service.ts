@@ -21,7 +21,6 @@ export class ColumnsService {
     };
   }
 
-
   async update(id: string, updateColumnDto: UpdateColumnDto) {
     await this.prisma.column.update({
       where: { id },
