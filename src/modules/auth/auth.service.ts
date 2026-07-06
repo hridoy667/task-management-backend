@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable, Post } from '@nestjs/common';
+import { BadRequestException, Injectable, Post, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { saveUploadedFile } from 'src/common/helpers/fileupload';
 import { comparePasswords, hashPassword } from 'src/common/helpers/password-helper';
 import { generateAvatarUrl } from 'src/common/helpers/file-url';
-import { signRefreshToken } from 'src/common/utils/jwt-token.util';
+import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from 'src/common/utils/jwt-token.util';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -52,8 +52,7 @@ export class AuthService {
 
   async login(loginAuthDto: LoginAuthDto) {
     const { email, password } = loginAuthDto;
-    console.log(loginAuthDto);
-    console.log('Login attempt for email:', email);
+
     const user = await this.prisma.user.findUnique({
       where: { email }
     });
@@ -62,20 +61,58 @@ export class AuthService {
       throw new BadRequestException('Invalid credentials');
     }
 
-    // Compare passwords (assuming you have a method to compare hashed passwords)
     const isMatch = await comparePasswords(password, user.password);
-
     if (!isMatch) {
       throw new BadRequestException('Invalid credentials');
     }
-    const payload = { userId: user.id, email: user.email };
 
-    const refreshToken = signRefreshToken(this.jwtService, payload);
+    const tokenPayload = { userId: user.id, email: user.email };
+
+    const accessToken = signAccessToken(this.jwtService, tokenPayload);
+    const refreshToken = signRefreshToken(this.jwtService, { userId: user.id });
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: hashToken(refreshToken),
+      },
+    });
 
     return {
       success: true,
       message: 'Login successful',
+      accessToken,
       refreshToken,
+    };
+  }
+
+  async refreshTokens(rawRefreshToken: string) {
+    const payload = verifyRefreshToken(this.jwtService, rawRefreshToken);
+    if (!payload) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+    });
+
+    if (!user || !user.refreshToken) {
+      throw new UnauthorizedException('Access denied');
+    }
+
+    const incomingHash = hashToken(rawRefreshToken);
+    if (user.refreshToken !== incomingHash) {
+      throw new UnauthorizedException('Invalid token validation');
+    }
+
+    const accessToken = signAccessToken(this.jwtService, {
+      userId: user.id,
+      email: user.email,
+    });
+
+    return {
+      success: true,
+      accessToken,
     };
   }
 

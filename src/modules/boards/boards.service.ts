@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { cursorPaginationDto } from 'src/common/pagination/cursor-pagination.dto';
+import { metadata } from 'reflect-metadata/no-conflict';
 
 @Injectable()
 export class BoardsService {
@@ -20,16 +22,21 @@ export class BoardsService {
     };
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: string, paginationDto: cursorPaginationDto) {
     const boards = await this.prisma.board.findMany({
       where: {
         ownerId: userId
-      }
+      },
+      take: paginationDto.limit,
+      skip: paginationDto.cursor ? 1 : 0
     });
     return {
       success: true,
       message: 'Boards retrieved successfully',
-      data: boards
+      data: boards,
+      metadata:{
+        cursor: boards.length > 0 ? boards[boards.length - 1].id : null
+      }
     };
   }
 
@@ -55,7 +62,7 @@ export class BoardsService {
   }
 
   async remove(id: string, userId: string) {
-    await this.prisma.board.update({
+   const deletedBoard = await this.prisma.board.update({
       where: {
         id,
         ownerId: userId
@@ -64,6 +71,11 @@ export class BoardsService {
         deletedAt: new Date()
       }
     });
+
+    if (!deletedBoard) {
+      throw new Error('Board not found or you do not have permission to delete it');
+    }
+    
     return {
       success: true,
       message: 'Board removed successfully'
