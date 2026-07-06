@@ -67,6 +67,7 @@ model Task {
 
   @@index([columnId])  
   @@index([assigneeId])
+  @@unique([columnId, position])
 }
 
 model TaskLabel {

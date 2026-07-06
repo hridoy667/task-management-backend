@@ -22,10 +22,13 @@ export class ColumnsService {
   }
 
   async update(id: string, updateColumnDto: UpdateColumnDto) {
-    await this.prisma.column.update({
+    const column = await this.prisma.column.update({
       where: { id },
       data: updateColumnDto
     });
+    if (!column) {
+      throw new Error('Column not found');
+    }
     return {
       success: true,
       message: 'Column updated successfully'

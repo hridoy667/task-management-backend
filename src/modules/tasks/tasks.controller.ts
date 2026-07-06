@@ -1,24 +1,25 @@
-import { Body, Controller, Param, Post, Patch, Delete, UseGuards } from "@nestjs/common";
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiResponse, 
-  ApiBearerAuth, 
-  ApiParam 
+import { Body, Controller, Param, Post, Patch, Delete, UseGuards, Get } from "@nestjs/common";
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiBearerAuth,
+    ApiParam
 } from "@nestjs/swagger";
 import { TasksService } from "./tasks.service";
 import { CreateTaskDto } from "./dto/create-task.dto";
 import { UpdateTaskDto } from "./dto/update-task.dto";
 import { MoveTaskPositionDto } from "./dto/move-task.dto";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
+import { ThrottlerGuard,Throttle } from "@nestjs/throttler";
 
 @ApiTags('Tasks') // Groups all task endpoints under a 'Tasks' section in Swagger UI
 @ApiBearerAuth('JWT-auth') // Ties this entire controller to the Swagger JWT configurations
 @UseGuards(JwtAuthGuard)
 @Controller('')
 export class TasksController {
-    constructor(private readonly tasksService: TasksService) {}
-    
+    constructor(private readonly tasksService: TasksService) { }
+
     @Post('columns/:id/tasks')
     @ApiOperation({ summary: 'Create a new task inside a column' })
     @ApiParam({ name: 'id', description: 'The unique identification string of the parent Column' })
@@ -27,8 +28,10 @@ export class TasksController {
     @ApiResponse({ status: 404, description: 'Parent column not found.' })
     async create(@Param('id') columnId: string, @Body() createTaskDto: CreateTaskDto) {
         return this.tasksService.create(columnId, createTaskDto);
-    }    
+    }
 
+    @UseGuards(ThrottlerGuard)
+    @Throttle({ default: { limit: 20, ttl: 60000 } })
     @Patch('tasks/:id')
     @ApiOperation({ summary: 'Update specific details or labels of a task' })
     @ApiParam({ name: 'id', description: 'The identification string of the Task to modify' })
@@ -49,6 +52,8 @@ export class TasksController {
         return this.tasksService.delete(id);
     }
 
+    @UseGuards(ThrottlerGuard)
+    @Throttle({ default: { limit: 20, ttl: 60000 } })
     @Patch('tasks/:id/position')
     @ApiOperation({ summary: 'Move a task into a different column or shift its vertical sequence order' })
     @ApiParam({ name: 'id', description: 'The identification string of the moving Task' })

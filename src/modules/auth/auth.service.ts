@@ -1,10 +1,8 @@
 import { BadRequestException, Injectable, Post, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { saveUploadedFile } from 'src/common/helpers/fileupload';
 import { comparePasswords, hashPassword } from 'src/common/helpers/password-helper';
-import { generateAvatarUrl } from 'src/common/helpers/file-url';
 import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from 'src/common/utils/jwt-token.util';
 import { JwtService } from '@nestjs/jwt';
 

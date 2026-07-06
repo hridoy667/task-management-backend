@@ -21,6 +21,7 @@ import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { cursorPaginationDto } from 'src/common/pagination/cursor-pagination.dto';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 @ApiTags('Boards')
 @ApiBearerAuth('JWT-auth')
@@ -39,6 +40,8 @@ export class BoardsController {
     return this.boardsService.create(createBoardDto, userId);
   }
 
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
   @Get()
   @ApiOperation({ summary: 'Get all boards for the authenticated user' })
   @ApiResponse({ status: 200, description: 'Successfully retrieved user boards.' })

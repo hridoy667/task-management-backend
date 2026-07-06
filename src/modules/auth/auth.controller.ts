@@ -5,7 +5,8 @@ import {
   UseInterceptors, 
   UploadedFile, 
   HttpCode, 
-  HttpStatus 
+  HttpStatus, 
+  UseGuards
 } from '@nestjs/common';
 import { 
   ApiTags, 
@@ -19,12 +20,14 @@ import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
+  @UseGuards(ThrottlerGuard)
   @Post('register')
   @UseInterceptors(FileInterceptor('avatar', {
     storage: memoryStorage(),
@@ -37,7 +40,7 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        name: { type: 'string', example: 'John Doe' },
+        name: { type: 'string', example: 'John doe' },
         email: { type: 'string', example: 'user@mail.com' },
         password: { type: 'string', example: 'password123' },
         avatar: {
@@ -55,6 +58,7 @@ export class AuthController {
     return this.authService.create(createAuthDto, image);
   }
 
+  @UseGuards(ThrottlerGuard)
   @Post('login')
   @ApiOperation({ summary: 'User login (Returns Access & Refresh Tokens)' })
   @ApiResponse({ status: 200, description: 'Login successful. Returns tokens.' })
@@ -64,7 +68,6 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Generate new Access Token (Using Refresh Token)' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully.' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token.' })

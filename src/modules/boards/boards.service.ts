@@ -23,20 +23,46 @@ export class BoardsService {
   }
 
   async findAll(userId: string, paginationDto: cursorPaginationDto) {
+    const { cursor, limit, title, priority, dueDate } = paginationDto;
+
+    const filterCriteria: any = {
+      ownerId: userId,
+      deletedAt: null,
+    };
+
+    if (title) {
+      filterCriteria.title = {
+        contains: title,
+        mode: 'insensitive',
+      };
+    }
+
+    if (priority !== undefined) {
+      filterCriteria.priority = priority;
+    }
+
+    if (dueDate) {
+      filterCriteria.dueDate = {
+        lte: new Date(dueDate)
+      };
+    }
+
+    // Fetch matching records
     const boards = await this.prisma.board.findMany({
-      where: {
-        ownerId: userId
-      },
-      take: paginationDto.limit,
-      skip: paginationDto.cursor ? 1 : 0
+      where: filterCriteria,
+      take: limit ? Number(limit) : 10,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: { id: 'asc' },
     });
+
     return {
       success: true,
-      message: 'Boards retrieved successfully',
+      message: 'Records retrieved successfully',
       data: boards,
-      metadata:{
-        cursor: boards.length > 0 ? boards[boards.length - 1].id : null
-      }
+      metadata: {
+        cursor: boards.length > 0 ? boards[boards.length - 1].id : null,
+      },
     };
   }
 
@@ -62,7 +88,7 @@ export class BoardsService {
   }
 
   async remove(id: string, userId: string) {
-   const deletedBoard = await this.prisma.board.update({
+    const deletedBoard = await this.prisma.board.update({
       where: {
         id,
         ownerId: userId
@@ -75,7 +101,7 @@ export class BoardsService {
     if (!deletedBoard) {
       throw new Error('Board not found or you do not have permission to delete it');
     }
-    
+
     return {
       success: true,
       message: 'Board removed successfully'

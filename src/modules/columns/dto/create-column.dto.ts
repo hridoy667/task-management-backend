@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { IsInt, IsString } from "class-validator";
 
 export class CreateColumnDto {
     @ApiProperty({ example: 'To Do', description: 'The title of the column' })
@@ -7,6 +7,6 @@ export class CreateColumnDto {
     title!: string;
 
     @ApiProperty({ example: 1, description: 'The order of the column' })
-    @IsString()
+    @IsInt()
     order!: number;
 }
