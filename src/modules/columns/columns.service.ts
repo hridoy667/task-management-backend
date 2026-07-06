@@ -1,26 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { CreateColumnDto } from './dto/create-column.dto';
 import { UpdateColumnDto } from './dto/update-column.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ColumnsService {
-  create(createColumnDto: CreateColumnDto) {
-    return 'This action adds a new column';
+
+  constructor(private readonly prisma:PrismaService) { }
+
+  async create(createColumnDto: CreateColumnDto, boardId: string) {
+    await this.prisma.column.create({
+      data: {
+        ...createColumnDto,
+        boardId
+      }
+    });
+    return {
+      success: true,
+      message: 'Column created successfully'
+    };
   }
 
-  findAll() {
-    return `This action returns all columns`;
+
+  async update(id: string, updateColumnDto: UpdateColumnDto) {
+    await this.prisma.column.update({
+      where: { id },
+      data: updateColumnDto
+    });
+    return {
+      success: true,
+      message: 'Column updated successfully'
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} column`;
-  }
-
-  update(id: number, updateColumnDto: UpdateColumnDto) {
-    return `This action updates a #${id} column`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} column`;
+  async remove(id: string) {
+    await this.prisma.column.delete({
+      where: { id }
+    });
+    return {
+      success: true,
+      message: 'Column removed successfully'
+    };
   }
 }

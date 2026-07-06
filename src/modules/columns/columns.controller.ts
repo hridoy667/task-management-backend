@@ -3,32 +3,22 @@ import { ColumnsService } from './columns.service';
 import { CreateColumnDto } from './dto/create-column.dto';
 import { UpdateColumnDto } from './dto/update-column.dto';
 
-@Controller('columns')
+@Controller('')
 export class ColumnsController {
   constructor(private readonly columnsService: ColumnsService) {}
 
-  @Post()
-  create(@Body() createColumnDto: CreateColumnDto) {
-    return this.columnsService.create(createColumnDto);
+  @Post('boards/:id/columns')
+  async create(@Body() createColumnDto: CreateColumnDto,@Param('id') boardId: string) {
+    return this.columnsService.create(createColumnDto, boardId);
   }
 
-  @Get()
-  findAll() {
-    return this.columnsService.findAll();
+  @Patch('columns/:id')
+  async update(@Param('id') id: string, @Body() updateColumnDto: UpdateColumnDto) {
+    return this.columnsService.update(id, updateColumnDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.columnsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateColumnDto: UpdateColumnDto) {
-    return this.columnsService.update(+id, updateColumnDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.columnsService.remove(+id);
+  @Delete('columns/:id')
+  async remove(@Param('id') id: string) {
+    return this.columnsService.remove(id);
   }
 }
