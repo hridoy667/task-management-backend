@@ -1,6 +1,6 @@
 # Task Management Backend
 
-This is the backend API for a Kanban-style task management application. Built with **NestJS**, **Prisma ORM**, and **PostgreSQL**, it handles user authentication, board creation, column layouts, and real-time task positioning with high security and stability.
+This is the backend API for a Kanban-style task management application. Built with **NestJS**, **Prisma ORM**, and **PostgreSQL**, it handles user authentication, board creation, column layouts, and task positioning with high security and stability.
 
 ---
 
