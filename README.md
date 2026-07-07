@@ -96,12 +96,13 @@ You can use this link to check out the expected request bodies, response models,
 
 * **The Problem:** Multiple tasks could accidentally take up the same position index within a column during changes.
 
-* **The Solution:** Added a strict unique index to ensure no two tasks can ever hold the identical position value within the same column at the same time.
+* **The Solution:**Maintained position is unique while creating task. Added a strict unique index `@@unique([columnId, position])` to ensure no two tasks can ever hold the identical position value within the same column at the same time.
 
 ### 2. URL Query Strings Failing Number Validations
 
 * **The Problem:** Express parses incoming URL query data (like pagination limits or filtering priorities) as plain strings. This caused strict `class-validator` rules like `@IsInt()` to throw errors.
 * **The Solution:** Enabled `transform: true` globally inside NestJS validation pipes and used class-transformer's `@Type(() => Number)` to clean up and convert data types automatically before they reach our service filters.
+
 
 ---
 
