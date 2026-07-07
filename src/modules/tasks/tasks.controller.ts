@@ -1,4 +1,5 @@
-import { Body, Controller, Param, Post, Patch, Delete, UseGuards, Get } from "@nestjs/common";
+// src/modules/tasks/tasks.controller.ts
+import { Body, Controller, Param, Post, Patch, Delete, UseGuards, Req } from "@nestjs/common";
 import {
     ApiTags,
     ApiOperation,
@@ -11,10 +12,10 @@ import { CreateTaskDto } from "./dto/create-task.dto";
 import { UpdateTaskDto } from "./dto/update-task.dto";
 import { MoveTaskPositionDto } from "./dto/move-task.dto";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
-import { ThrottlerGuard,Throttle } from "@nestjs/throttler";
+import { ThrottlerGuard, Throttle } from "@nestjs/throttler";
 
-@ApiTags('Tasks') // Groups all task endpoints under a 'Tasks' section in Swagger UI
-@ApiBearerAuth('JWT-auth') // Ties this entire controller to the Swagger JWT configurations
+@ApiTags('Tasks')
+@ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('')
 export class TasksController {
@@ -26,8 +27,9 @@ export class TasksController {
     @ApiResponse({ status: 201, description: 'The task and its on-the-fly labels have been successfully created.' })
     @ApiResponse({ status: 401, description: 'Unauthorized access token.' })
     @ApiResponse({ status: 404, description: 'Parent column not found.' })
-    async create(@Param('id') columnId: string, @Body() createTaskDto: CreateTaskDto) {
-        return this.tasksService.create(columnId, createTaskDto);
+    async create(@Param('id') columnId: string, @Body() createTaskDto: CreateTaskDto, @Req() req: any) {
+        const userId = req.user.id;
+        return this.tasksService.create(columnId, createTaskDto, userId);
     }
 
     @UseGuards(ThrottlerGuard)
@@ -38,8 +40,9 @@ export class TasksController {
     @ApiResponse({ status: 200, description: 'The task details were updated and synchronized successfully.' })
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
     @ApiResponse({ status: 404, description: 'Task not found or is currently soft-deleted.' })
-    async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-        return this.tasksService.update(id, updateTaskDto);
+    async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Req() req: any) {
+        const userId = req.user.id;
+        return this.tasksService.update(id, updateTaskDto, userId);
     }
 
     @Delete('tasks/:id')
@@ -48,8 +51,9 @@ export class TasksController {
     @ApiResponse({ status: 200, description: 'The task was flagged as soft-deleted successfully.' })
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
     @ApiResponse({ status: 404, description: 'Task matching that ID does not exist.' })
-    async delete(@Param('id') id: string) {
-        return this.tasksService.delete(id);
+    async delete(@Param('id') id: string, @Req() req: any) {
+        const userId = req.user.id;
+        return this.tasksService.delete(id, userId);
     }
 
     @UseGuards(ThrottlerGuard)
@@ -61,7 +65,8 @@ export class TasksController {
     @ApiResponse({ status: 400, description: 'Bad formatting or transaction index out of bounds.' })
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
     @ApiResponse({ status: 404, description: 'Target task or target column not found.' })
-    async movePosition(@Param('id') id: string, @Body() moveTaskPositionDto: MoveTaskPositionDto) {
-        return this.tasksService.movePosition(id, moveTaskPositionDto);
+    async movePosition(@Param('id') id: string, @Body() moveTaskPositionDto: MoveTaskPositionDto, @Req() req: any) {
+        const userId = req.user.id;
+        return this.tasksService.movePosition(id, moveTaskPositionDto, userId);
     }
 }

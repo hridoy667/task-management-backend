@@ -18,6 +18,8 @@ model User {
   
   boards       Board[]
   assignedTasks Task[]   @relation("TaskAssignee")
+
+  taskActivities TaskActivity[]
 }
 
 model Board {
@@ -68,6 +70,7 @@ model Task {
   @@index([columnId])  
   @@index([assigneeId])
   @@unique([columnId, position])
+  taskActivities TaskActivity[]
 }
 
 model TaskLabel {
@@ -77,4 +80,17 @@ model TaskLabel {
   taskId String
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
   @@index([taskId])
+}
+
+model TaskActivity{
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  createdAt DateTime @default(now())
+
+  @@index([taskId])
+  @@index([userId])
 }
